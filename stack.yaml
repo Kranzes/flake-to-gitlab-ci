@@ -1,0 +1,5 @@
+resolver: nightly-2022-04-28
+packages:
+- .
+extra-deps:
+- shh-0.7.2.0
