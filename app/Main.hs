@@ -1,23 +1,23 @@
-{-# LANGUAGE DeriveAnyClass #-}
+{-# LANGUAGE DeriveAnyClass            #-}
+{-# LANGUAGE DerivingStrategies        #-}
+{-# LANGUAGE ExtendedDefaultRules      #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
-{-# LANGUAGE DerivingStrategies #-}
-{-# LANGUAGE ExtendedDefaultRules #-}
-{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE OverloadedStrings         #-}
 module Main where
 
-import Data.Maybe
-import Control.Exception
-import Data.Aeson as A
-import Data.Aeson.KeyMap
-import Data.Aeson.Lens
-import Data.Map as Map
-import Formatting
-import GHC.Generics
-import Control.Lens hiding ((|>))
-import Data.Text
-import Shh
-import qualified Data.Yaml.Pretty as Y
-import qualified Data.ByteString as BS
+import           Control.Exception
+import           Control.Lens      hiding ((|>))
+import           Data.Aeson        as A
+import           Data.Aeson.KeyMap
+import           Data.Aeson.Lens
+import qualified Data.ByteString   as BS
+import           Data.Map          as Map
+import           Data.Maybe
+import           Data.Text
+import qualified Data.Yaml.Pretty  as Y
+import           Formatting
+import           GHC.Generics
+import           Shh
 
 data Step = Step {
   script :: [Text]
