@@ -26,7 +26,15 @@
         ];
         pkgs = import nixpkgs { inherit system overlays; inherit (haskellNix) config; };
         flake = pkgs.flake-to-gitlab-ci.flake { };
+        f2gci-wrapped = pkgs.writers.writeBashBin "f2gci-wrapped" ''
+           export PATH=$PATH:${pkgs.nix}
+           ${flake.packages."flake-to-gitlab-ci:exe:flake-to-gitlab-ci-exe"}/bin/flake-to-gitlab-ci-exe
+         '';
       in flake // {
+           defaultApp = {
+             type = "app";
+             program = "${f2gci-wrapped}/bin/f2gci-wrapped";
+           };
            defaultPackage = flake.packages."flake-to-gitlab-ci:exe:flake-to-gitlab-ci-exe";
          });
 }

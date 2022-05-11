@@ -25,10 +25,8 @@ data Step = Step {
 } deriving stock (Show, Eq, Generic)
   deriving anyclass (FromJSON, ToJSON)
 
-$(load SearchPath ["nix"])
-
 nixFlakeShowJson :: Proc ()
-nixFlakeShowJson = nix ["flake", "show", "--allow-import-from-derivation", "--json"]
+nixFlakeShowJson = mkProc "nix" ["flake", "show", "--allow-import-from-derivation", "--json"]
 
 type AttrPath = Text
 
