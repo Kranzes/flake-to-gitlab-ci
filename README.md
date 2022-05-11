@@ -23,4 +23,5 @@ flake-ci:
     include:
       - artifact: flake-ci.yml
         job: generate-flake-ci
+    strategy: depend
 ```
