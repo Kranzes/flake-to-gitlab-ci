@@ -3,7 +3,6 @@
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE ExtendedDefaultRules #-}
 {-# LANGUAGE OverloadedStrings #-}
-{-# LANGUAGE TemplateHaskell #-}
 module Main where
 
 import Data.Maybe
@@ -28,16 +27,8 @@ data Step = Step {
 nixFlakeShowJson :: Proc ()
 nixFlakeShowJson = mkProc "nix" ["flake", "show", "--allow-import-from-derivation", "--json"]
 
-type AttrPath = Text
-
 nixBuildCmd :: Format r (Text -> Text -> r)
 nixBuildCmd = "nix build -L .#" % stext % "." % stext
-
-data Item = Item {
-   description :: Text
- , name :: Text
-} deriving stock (Show, Eq, Generic)
-  deriving anyclass (FromJSON, ToJSON)
 
 getChecksJSON :: Value -> [Text]
 getChecksJSON = Map.keys . toMapText . view (_Object . ix "checks" . _Object . ix "x86_64-linux" . _Object)
@@ -53,11 +44,6 @@ mkPkg x = (sformat ("Package " % stext) x, Step $ [sformat nixBuildCmd "packages
 
 mkDevShell :: (Text, Step)
 mkDevShell = ("Build devShell", Step [ "nix build -L .#devShell.x86_64-linux"])
-
-{--
-toStep :: Text -> Text -> Value -> (Text, Step)
-toStep id prefix x = (id, format 
---}
 
 main = do
   x <- nixFlakeShowJson |> capture
