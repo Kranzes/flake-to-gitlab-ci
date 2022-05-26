@@ -32,15 +32,15 @@
         '';
       in
       flake // {
+        apps.default = {
+          type = "app";
+          program = "${f2gci-wrapped}/bin/f2gci-wrapped";
+        };
         checks = flake.checks // {
           hlint = lint-utils.outputs.linters.${system}.hlint ./.;
           hpack = lint-utils.outputs.linters.${system}.hpack ./.;
           nixpkgs-fmt = lint-utils.outputs.linters.${system}.nixpkgs-fmt ./.;
           stylish-haskell = lint-utils.outputs.linters.${system}.stylish-haskell ./.;
-        };
-        defaultApp = {
-          type = "app";
-          program = "${f2gci-wrapped}/bin/f2gci-wrapped";
         };
         defaultPackage = flake.packages."flake-to-gitlab-ci:exe:flake-to-gitlab-ci-exe";
       });
