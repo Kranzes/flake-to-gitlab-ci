@@ -42,9 +42,6 @@ mkCheck x = (sformat ("Check " % stext) x, Step $ [sformat nixBuildCmd "checks.x
 mkPkg :: Text -> (Text, Step)
 mkPkg x = (sformat ("Package " % stext) x, Step $ [sformat nixBuildCmd "packages.x86_64-linux" x])
 
-mkDevShell :: (Text, Step)
-mkDevShell = ("Build devShell", Step [ "nix build -L .#devShell.x86_64-linux"])
-
 main = do
   x <- nixFlakeShowJson |> capture
   case A.eitherDecode @Value x of
@@ -52,6 +49,4 @@ main = do
     Right r -> do
       let pkgs = fmap mkPkg $ getPackagesJSON r
           chks = fmap mkCheck $ getChecksJSON r
-          isDs = (r ^? (key "devShell")) :: Maybe Value
-          ds = if (isJust isDs) then pure mkDevShell else []
-      BS.putStr $ Y.encodePretty Y.defConfig $ Map.fromList $ pkgs <> chks <> ds
+      BS.putStr $ Y.encodePretty Y.defConfig $ Map.fromList $ pkgs <> chks
