@@ -3,21 +3,27 @@
 {-# LANGUAGE ExtendedDefaultRules      #-}
 {-# LANGUAGE NoMonomorphismRestriction #-}
 {-# LANGUAGE OverloadedStrings         #-}
+{-# LANGUAGE TemplateHaskell           #-}
 module Main where
 
 import           Control.Exception
-import           Control.Lens      hiding ((|>))
-import           Data.Aeson        as A
+import           Control.Lens          hiding ((|>))
+import           Data.Aeson            as A
 import           Data.Aeson.KeyMap
 import           Data.Aeson.Lens
-import qualified Data.ByteString   as BS
-import           Data.Map          as Map
+import qualified Data.ByteString       as BS
+import qualified Data.ByteString.Char8 as BSC
+import           Data.Map              as Map
 import           Data.Maybe
 import           Data.Text
-import qualified Data.Yaml.Pretty  as Y
+import qualified Data.Yaml.Pretty      as Y
 import           Formatting
 import           GHC.Generics
 import           Shh
+import           System.Which          (staticWhich)
+
+nixBin :: FilePath
+nixBin = $(staticWhich "nix")
 
 data Step = Step {
   script :: [Text]
@@ -25,7 +31,7 @@ data Step = Step {
   deriving anyclass (FromJSON, ToJSON)
 
 nixFlakeShowJson :: Proc ()
-nixFlakeShowJson = mkProc "nix" ["flake", "show", "--allow-import-from-derivation", "--json"]
+nixFlakeShowJson = mkProc (BSC.fromStrict $ BSC.pack nixBin) ["flake", "show", "--allow-import-from-derivation", "--json"]
 
 nixBuildCmd :: Format r (Text -> Text -> r)
 nixBuildCmd = "nix build -L .#" % stext % "." % stext

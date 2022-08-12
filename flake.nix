@@ -1,47 +1,32 @@
 {
-  description = "flake-to-gitlab-ci";
   inputs = {
-    flake-utils.url = "github:numtide/flake-utils";
-    lint-utils.url = "git+https://gitlab.homotopic.tech/nix/lint-utils";
-    nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
-    haskellNix.url = "github:input-output-hk/haskell.nix";
+    nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
+    flake-parts = { url = "github:hercules-ci/flake-parts"; inputs.nixpkgs.follows = "nixpkgs"; };
+    haskell-flake.url = "github:srid/haskell-flake";
+    lint-utils = { url = "git+https://gitlab.homotopic.tech/nix/lint-utils"; inputs.nixpkgs.follows = "nixpkgs"; };
   };
-  outputs = { self, nixpkgs, flake-utils, lint-utils, haskellNix }:
-    flake-utils.lib.eachSystem [ "x86_64-linux" ] (system:
-      let
-        deferPluginErrors = true;
-        overlays = [
-          haskellNix.overlay
-          (final: prev: {
-            flake-to-gitlab-ci =
-              final.haskell-nix.project' {
-                src = ./.;
-                compiler-nix-name = "ghc922";
-                projectFileName = "stack.yaml";
-                modules = [{
-                  reinstallableLibGhc = true;
-                }];
-              };
-          })
-        ];
-        pkgs = import nixpkgs { inherit system overlays; inherit (haskellNix) config; };
-        flake = pkgs.flake-to-gitlab-ci.flake { };
-        f2gci-wrapped = pkgs.writers.writeBashBin "f2gci-wrapped" ''
-          export PATH=$PATH:${pkgs.nix}
-          ${flake.packages."flake-to-gitlab-ci:exe:flake-to-gitlab-ci-exe"}/bin/flake-to-gitlab-ci-exe
-        '';
-      in
-      flake // {
-        apps.default = {
-          type = "app";
-          program = "${f2gci-wrapped}/bin/f2gci-wrapped";
+
+  outputs = { self, nixpkgs, flake-parts, haskell-flake, lint-utils }:
+    flake-parts.lib.mkFlake { inherit self; } {
+      systems = [ "x86_64-linux" ];
+      imports = [ haskell-flake.flakeModule ];
+      perSystem = { self', system, pkgs, lib, ... }: {
+        haskellProjects.default = {
+          haskellPackages = pkgs.haskell.packages.ghc924;
+          root = self;
+          overrides = self: super: with pkgs.haskell.lib; {
+            shh = doJailbreak super.shh;
+            lens-aeson = dontCheck (self.callHackage "lens-aeson" "1.2.1" { });
+          };
+          modifier = drv: pkgs.haskell.lib.addBuildTool drv pkgs.nix;
         };
-        checks = flake.checks // {
-          hlint = lint-utils.outputs.linters.${system}.hlint ./.;
-          hpack = lint-utils.outputs.linters.${system}.hpack ./.;
-          nixpkgs-fmt = lint-utils.outputs.linters.${system}.nixpkgs-fmt ./.;
-          stylish-haskell = lint-utils.outputs.linters.${system}.stylish-haskell ./.;
+
+        checks = {
+          hlint = lint-utils.outputs.linters.${system}.hlint self;
+          hpack = lint-utils.outputs.linters.${system}.hpack self;
+          nixpkgs-fmt = lint-utils.outputs.linters.${system}.nixpkgs-fmt self;
+          stylish-haskell = lint-utils.outputs.linters.${system}.stylish-haskell self;
         };
-        defaultPackage = flake.packages."flake-to-gitlab-ci:exe:flake-to-gitlab-ci-exe";
-      });
+      };
+    };
 }
