@@ -46,13 +46,13 @@ getDevShellsJSON :: Value -> [Text]
 getDevShellsJSON = Map.keys . toMapText . view (_Object . ix "devShells" . _Object . ix "x86_64-linux" . _Object)
 
 mkCheck :: Text -> (Text, Step)
-mkCheck x = (sformat ("Check " % stext) x, Step $ [sformat nixBuildCmd "checks.x86_64-linux" x] )
+mkCheck x = (sformat ("checks." % stext) x, Step $ [sformat nixBuildCmd "checks.x86_64-linux" x] )
 
 mkPkg :: Text -> (Text, Step)
-mkPkg x = (sformat ("Package " % stext) x, Step $ [sformat nixBuildCmd "packages.x86_64-linux" x])
+mkPkg x = (sformat ("packages." % stext) x, Step $ [sformat nixBuildCmd "packages.x86_64-linux" x])
 
 mkDevShell :: Text -> (Text, Step)
-mkDevShell x = (sformat ("Devshell " % stext) x, Step $ [sformat nixBuildCmd "devShells.x86_64-linux" x])
+mkDevShell x = (sformat ("devShells." % stext) x, Step $ [sformat nixBuildCmd "devShells.x86_64-linux" x])
 
 main = do
   x <- nixFlakeShowJson |> capture
